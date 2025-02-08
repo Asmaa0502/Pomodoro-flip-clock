@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+import 'package:flip_timer/flip_timer.dart';
+import 'package:provider/provider.dart';
+
+void main() => runApp(PomodoroApp());
+
+class PomodoroApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => PomodoroTimer(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: HomeScreen(),
+      ),
+    );
+  }
+}
+
+class PomodoroTimer with ChangeNotifier {
+  Duration workDuration = Duration(minutes: 25);
+  Duration breakDuration = Duration(minutes: 5);
+  bool isWorking = true;
+
+  void toggleTimer() {
+    isWorking = !isWorking;
+    notifyListeners();
+  }
+
+  void setDurations(Duration work, Duration breakTime) {
+    workDuration = work;
+    breakDuration = breakTime;
+    notifyListeners();
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  final List<Color> pastelThemes = [
+    Colors.pink[100]!,
+    Colors.blue[100]!,
+    Colors.lavender[100]!,
+    Colors.green[100]!,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final timer = Provider.of<PomodoroTimer>(context);
+    return Scaffold(
+      backgroundColor: pastelThemes[0], // Default pastel theme
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          "Pomodoro Timer",
+          style: TextStyle(color: Colors.black),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FlipClock.simple(
+            startTime: timer.isWorking
+                ? timer.workDuration
+                : timer.breakDuration,
+            height: 100,
+            width: 70,
+            digitColor: Colors.black,
+            backgroundColor: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            onFinished: () {
+              timer.toggleTimer();
+            },
+          ),
+          SizedBox(height: 20),
+          Text(
+            timer.isWorking ? "Time to Work!" : "Take a Break!",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 30),
+          ElevatedButton(
+            onPressed: () {
+              timer.setDurations(Duration(minutes: 30), Duration(minutes: 5));
+            },
+            child: Text("30 min / 5 min break"),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.pink[200]),
+            ),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              timer.setDurations(Duration(minutes: 60), Duration(minutes: 15));
+            },
+            child: Text("60 min / 15 min break"),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.blue[200]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
